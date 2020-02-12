@@ -37,29 +37,84 @@ public class db_dao {
      */
     public HashMap qurey(String tableName, HashMap args){
         SQLiteDatabase db = mhleper.getWritableDatabase();
+        //查询数据表的所有信息
         if(args.get(app_constants.MODE).equals(app_constants.MODE_QUERY_ALL_INFO)){
             return qurey_table_detail_info(tableName, db);
         }
         switch(tableName){
             //专业数据表的操作
             case db_constants.TABLE_PROFESSION:
-                //查询所有专业的详细信息
-                if(false){
-                    return null;
-                }
                 //查询所有专业名称
-                else if(args.get(app_constants.MODE).equals(app_constants.MODE_QUERY_ALL_PROFESSION_NAMES)){
+                if(args.get(app_constants.MODE).equals(app_constants.MODE_QUERY_ALL_PROFESSION_NAMES)){
                     return qurey_table_profession_all_name(db, tableName);
                 }
                 //根据专业名称查询专业ID
                 else if(args.get(app_constants.MODE).equals(app_constants.MODE_QUERY_PROFESSION_NAME_TO_ID)){
                     return qurey_table_profession_name_to_id(db, tableName, args);
-                }else{
-                    return null;
                 }
+                break;
+                //课程表的操作
+            case db_constants.TABLE_COURSE:
+                //根据专业名称查询专业课程
+                if(args.get(app_constants.MODE).equals(app_constants.MODE_QUERY_PROFESSION_NAME_TO_COURSE)){
+                    Log.d(TAG, args.get("pro_name").toString());
+                    //获取专业ID
+                    args.put(app_constants.MODE, app_constants.MODE_QUERY_PROFESSION_NAME_TO_ID);
+                    int pro_id = (int)qurey(db_constants.TABLE_PROFESSION, args).get(app_constants.RE_INT);
+                    //根据专业ID获取专业课程
+                    return qurey_table_profession_name_to_course(db, pro_id);
+                }
+                //根据课程名称查询课程ID
+                else if(args.get(app_constants.MODE).equals(app_constants.MODE_QUERY_COURSE_NAME_TO_ID)){
+                    return qurey_table_course_name_to_id(db, tableName, args);
+                }
+
+
         }
         return null;
     }
+
+    /**
+     * 根据专业ID查询专业课程
+     * @param db
+     * @param pro_id
+     * @return key: RESList
+     */
+    private HashMap qurey_table_profession_name_to_course(SQLiteDatabase db, int pro_id) {
+        String sql = "select name from " + db_constants.TABLE_COURSE + " where pro_id = ?;";
+        Cursor cursor = db.rawQuery(sql, new String[]{Integer.toString(pro_id)});
+        List<String> result = new ArrayList<String>();
+        while(cursor.moveToNext()){
+            String name  = cursor.getString(cursor.getColumnIndex("name"));
+            result.add(name);
+        }
+        HashMap reList = new HashMap();
+        reList.put(app_constants.RE_LIST, result);
+        return reList;
+    }
+    /**
+     * 根据课程名称查询课程ID
+     * @param db
+     * @param tableName
+     * @param args
+     * @return RE_INT
+     */
+    private HashMap qurey_table_course_name_to_id(SQLiteDatabase db, String tableName, HashMap args) {
+        String sql = "select _id from " + tableName + " where name = ?;";
+        Cursor cursor = db.rawQuery(sql, new String[]{(String)args.get("course_name")});
+        int _id = -1;
+        HashMap result = new HashMap();
+        while(cursor.moveToNext()){
+            _id  = cursor.getInt(cursor.getColumnIndex("_id"));
+        }
+        cursor.close();
+        if(_id == -1){
+            return null;
+        }
+        result.put(app_constants.RE_INT, _id);
+        return result;
+    }
+
 
     /**
      * 根据专业名称查询专业ID
@@ -203,15 +258,15 @@ public class db_dao {
     private boolean insert_table(SQLiteDatabase db,String tableName,Object data){
         String sql="";
         data_object.tabledata tabledata= (data_object.tabledata)data;
-        if(tabledata.get_id() == -1){
-            tabledata.set_id(getMaxId(tableName) + 1);
-        }
         switch (tableName){
             case db_constants.TABLE_PROFESSION:
                 sql= "insert into " + tableName  + " (name, teacher_id)values(?,?);";
                 break;
             case db_constants.TABLE_COURSE:
                 sql= "insert into " + tableName  + "(name, credit, time, pro_id, teacher_id) values(?,?,?,?,?)";
+                break;
+            case db_constants.TABLE_TEACHER:
+                sql= "insert into " + tableName  + "(name, position,work_index, user_psd ,pro_id, course_id) values(?,?,?,?,?,?)";
                 break;
         }
         try{
@@ -220,6 +275,16 @@ public class db_dao {
         }catch (Exception e){
             return false;
         }
+    }
+
+
+    /**
+     * 提供外部调用函数
+     * @param name
+     * @return
+     */
+    public int get_maxid(String name){
+           return getMaxId(name);
     }
 
     /**
@@ -232,7 +297,7 @@ public class db_dao {
         SQLiteDatabase db = mhleper.getWritableDatabase();
         String sql = null;
         int count = 0;
-        sql = "select count(*) from " + db_constants.TABLE_PROFESSION + ";";
+        sql = "select count(*) from " + tableName + ";";
         Cursor cursor = db.rawQuery(sql, null);
         while(cursor.moveToNext()){
             int index = cursor.getColumnIndex("count(*)");
@@ -242,7 +307,7 @@ public class db_dao {
         if(count == 0){
             maxId = 0;
         }else{
-            sql = "select max(_id) from " + db_constants.TABLE_PROFESSION + ";";
+            sql = "select max(_id) from " + tableName + ";";
             cursor = db.rawQuery(sql, null);
             while(cursor.moveToNext()){
                 int index = cursor.getColumnIndex("max(_id)");

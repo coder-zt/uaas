@@ -27,7 +27,7 @@ public class db_databasehleper extends SQLiteOpenHelper {
         sql = "create table " + db_constants.TABLE_STUDENT + "(_id integer, student_id varchar, sex varchar, phone varchar, user_psd varcahr, pro_id integer);";
         db.execSQL(sql);
         //教师信息表
-        sql = "create table " + db_constants.TABLE_TEACHER + "(_id integer primary key autoincrement, name varchar,work_index varchar, position varchar,user_psd varcahr, pro_id integer);";
+        sql = "create table " + db_constants.TABLE_TEACHER + "(_id integer primary key autoincrement, name varchar,work_index varchar unique, position varchar,user_psd varcahr, pro_id integer, course_id integer);";
         db.execSQL(sql);
         //选课信息表
         sql = "create table " + db_constants.TABLE_STU_COURSE + "(_id integer, stu_id integer, cou_id integer, grade integer);";

@@ -150,12 +150,76 @@ class data_object {
 
         int _id;
         String name;
-        int teacher_id;
         int pro_id;
+        int course_id;
+        String position;
+        String user_psd;
+        String work_index;
+
+        public teacher(String name,String work_index,String position,  String user_psd, int pro_id, int course_id) {
+            this.name = name;
+            this.pro_id = pro_id;
+            this.position = position;
+            this.user_psd = user_psd;
+            this.work_index = work_index;
+            this.course_id = course_id;
+        }
+
+        @Override
+        public int get_id() {
+            return _id;
+        }
+
+        @Override
+        public void set_id(int _id) {
+            this._id = _id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+
+        public int getPro_id() {
+            return pro_id;
+        }
+
+        public void setPro_id(int pro_id) {
+            this.pro_id = pro_id;
+        }
+
+        public String getUser_psd() {
+            return user_psd;
+        }
+
+        public void setUser_psd(String user_psd) {
+            this.user_psd = user_psd;
+        }
+
+        public String getWork_index() {
+            return work_index;
+        }
+
+        public void setWork_index(String work_index) {
+            this.work_index = work_index;
+        }
+
+        public int getCourse_id() {
+            return course_id;
+        }
+
+        public void setCourse_id(int course_id) {
+            this.course_id = course_id;
+        }
+
 
         @Override
         public String[] toStringArray() {
-            return super.toStringArray();
+            return new String[]{this.name, this.position, this.work_index, this.user_psd, Integer.toString(this.pro_id), Integer.toString(this.course_id)};
         }
     }
 }

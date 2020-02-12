@@ -59,6 +59,14 @@
             android:textSize="28sp"
             android:gravity="center"/>
 
+        <TextView
+            android:id="@+id/tv_input_course"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="选择讲授课程"
+            android:textSize="28sp"
+            android:gravity="center"/>
+
         <EditText
             android:id="@+id/et_input_psd"
             android:layout_width="match_parent"

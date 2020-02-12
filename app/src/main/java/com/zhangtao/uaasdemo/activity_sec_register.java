@@ -31,6 +31,8 @@ public class activity_sec_register extends AppCompatActivity implements Compound
     private TextView tvProfession,tvPosition;
     private PopupWindow pwTableNames;
     private EditText etInputPsd;
+    private boolean boolean_register;
+    private TextView tvInputCourse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +56,8 @@ public class activity_sec_register extends AppCompatActivity implements Compound
         tvProfession = findViewById(R.id.tv_input_profession);
         tvProfession.setOnClickListener(this);
         etInputPsd = findViewById(R.id.et_input_psd);
+        tvInputCourse = findViewById(R.id.tv_input_course);
+        tvInputCourse.setOnClickListener(this);
      }
 
     @Override
@@ -94,6 +98,9 @@ public class activity_sec_register extends AppCompatActivity implements Compound
                         case R.id.tv_input_profession:
                             tvProfession.setText(tableNames.get(position));
                             break;
+                        case R.id.tv_input_course:
+                            tvInputCourse.setText(tableNames.get(position));
+                            break;
                     }
                     if(pwTableNames.isShowing()){
                         pwTableNames.dismiss();
@@ -128,18 +135,28 @@ public class activity_sec_register extends AppCompatActivity implements Compound
         pwTableNames.showAsDropDown(v);
     }
 
+    /**
+     * 页面的点击事件处理
+     * @param v
+     */
     @Override
     public void onClick(View v) {
         db_dao dao = new db_dao(this);
         switch(v.getId()){
+
             case R.id.btn_register:
-                if (rbTeacher.isChecked() && rbTeacher.isChecked()) {
+                if (boolean_register) {
+                    finish();
+                    return;
+                }
+                if (rbTeacher.isChecked() && !rbStudent.isChecked()) {
                     if (etInputname.getText().toString().isEmpty() || etInputPsd.getText().toString().isEmpty() || tvProfession.getText().toString().equals("选择专业") || tvPosition.getText().toString().equals("选择职务")) {
                         Toast.makeText(this, "信息填写不全！请检查", Toast.LENGTH_SHORT).show();
                     }else if(etInputPsd.getText().toString().length() != 6){
                         Toast.makeText(this, "密码只能是6位数字", Toast.LENGTH_SHORT).show();
                     }else{
-                        addTeacherdata(new String[]{etInputname.getText().toString(), tvPosition.getText().toString(), tvProfession.getText().toString(), etInputPsd.getText().toString()});
+                        String your_index = addTeacherdata(dao, new String[]{etInputname.getText().toString(), tvPosition.getText().toString(), tvProfession.getText().toString(), etInputPsd.getText().toString(), tvInputCourse.getText().toString()});
+                        btnRegister.setText("你的工号是：" + your_index);
                     }
                 }else{
                     Toast.makeText(this, "请选择身份", Toast.LENGTH_SHORT).show();
@@ -156,12 +173,59 @@ public class activity_sec_register extends AppCompatActivity implements Compound
                 result = getAllProfessionName(dao);
                 showData(result, v);
                 break;
+            case R.id.tv_input_course:
+                result = getAllProfessionCourse(dao);
+                if(result != null){
+                    showData(result, v);
+                }
+                break;
         }
     }
 
-    private void addTeacherdata(String[] strings) {
-        for(String s:strings)
-            Log.d(TAG,s);
+    /**
+     * 指定专业下的课程名称
+     * @param dao
+     * @return
+     */
+    private List getAllProfessionCourse(db_dao dao) {
+        if (!tvProfession.getText().toString().equals("选择专业")) {
+            //获取课程
+            HashMap args = new HashMap();
+            args.put(app_constants.MODE,app_constants.MODE_QUERY_PROFESSION_NAME_TO_COURSE );
+            args.put("pro_name", tvProfession.getText().toString());
+            return  (List)dao.qurey(db_constants.TABLE_COURSE, args).get(app_constants.RE_LIST);
+        }else{
+            Toast.makeText(this, "请先选取自己的专业", Toast.LENGTH_SHORT).show();
+        }
+        return null;
+    }
+
+    /**
+     * 注册教师信息。生成工号并返回
+     * @param args 姓名 | 职位 | 专业 | 密码| 课程名称
+     */
+    private String addTeacherdata(db_dao dao, String[] args) {
+        //根据专业名称查询专业ID
+        HashMap request = new HashMap();
+        request.put(app_constants.MODE, app_constants.MODE_QUERY_PROFESSION_NAME_TO_ID);
+        request.put("pro_name",args[2]);
+        int pro_id = (int)dao.qurey(db_constants.TABLE_PROFESSION,request).get(app_constants.RE_INT);
+        //根据课程名称查课程ID
+        request.put(app_constants.MODE, app_constants.MODE_QUERY_COURSE_NAME_TO_ID);
+        request.put("course_name",args[4]);
+        int course_id = (int)dao.qurey(db_constants.TABLE_COURSE,request).get(app_constants.RE_INT);
+
+        Log.d(TAG, Integer.toString(course_id));
+        String  work_index =  "20" + String.format("%01d",pro_id) + String.format("%02d",dao.get_maxid(db_constants.TABLE_TEACHER) + 1);
+        Log.d(TAG, work_index);
+       data_object.teacher data = new data_object.teacher(args[0], work_index, args[1], args[3], pro_id, course_id);
+        if (dao.insert(db_constants.TABLE_TEACHER, data)) {
+            Toast.makeText(this,"数据写入成功！",Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(this,"数据写入失败！",Toast.LENGTH_SHORT).show();
+        }
+        boolean_register = true;
+        return work_index;
     }
 
     /**

@@ -11,8 +11,15 @@ public class app_constants {
     //查:4
     //全部信息:1
     final static int MODE_QUERY_ALL_INFO = 141;
-    //全部专业名称:2
-    final static int MODE_QUERY_ALL_PROFESSION_NAMES = 142;
-    //根据专业名称查其ID
-    final static int MODE_QUERY_PROFESSION_NAME_TO_ID = 143;
+    //专业：1
+    //全部专业名称:12
+    final static int MODE_QUERY_ALL_PROFESSION_NAMES = 1412;
+    //根据专业名称查其ID:13
+    final static int MODE_QUERY_PROFESSION_NAME_TO_ID = 1413;
+    //根据专业名称查其专业课:14
+    final static int MODE_QUERY_PROFESSION_NAME_TO_COURSE = 1414;
+    //课程：2
+    //根据课程名称查其ID:23
+    final static int MODE_QUERY_COURSE_NAME_TO_ID = 1223;
+
 }
